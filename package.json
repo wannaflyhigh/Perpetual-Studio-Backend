@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "專題後端",
   "type": "module",
+  "engines": {
+	"node": ">=14.18"
+  },
   "main": "index.js",
   "scripts": {
     "dev": "nodemon app.js"
