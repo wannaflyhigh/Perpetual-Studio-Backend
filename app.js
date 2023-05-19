@@ -9,7 +9,8 @@ const app = express()
 const port = process.env.PORT || 3000
 
 app.get('/chatgpt', async (req, res) => {
-	const { text } = req.query
+	const { text, key } = req.query
+	if (key != process.env.CHATGPT_KEY) return res.send('key required')
 	if (text == undefined) return res.send('missing parameter')
 	const data = await chatgpt(text)
 	res.json(data)
