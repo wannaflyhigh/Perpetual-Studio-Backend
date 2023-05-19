@@ -2,10 +2,18 @@ import express from "express"
 import * as dotenv from "dotenv"
 import axios from "axios"
 import { addToShelf, deleteFromShelf, queryShelf } from "./mongodb.js"
+import { chatgpt } from "./chatgpt.js"
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3000
+
+app.get('/chatgpt', async (req, res) => {
+	const { text } = req.query
+	if (text == undefined) return res.send('missing parameter')
+	const data = await chatgpt(text)
+	res.json(data)
+})
 
 app.get("/correctWords", async (req, res) => {
 	const resFromCorrectionSite = await axios.post(
