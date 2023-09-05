@@ -1,12 +1,29 @@
 import express from "express"
 import * as dotenv from "dotenv"
 import axios from "axios"
-import { addToShelf, deleteFromShelf, queryShelf } from "./mongodb.js"
+import { addToShelf, bookTouchShelf, deleteFromShelf, getAllBooks, queryShelf } from "./mongodb.js"
+import cors from "cors"
 import { chatgpt } from "./chatgpt.js"
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3000
+
+app.use(cors())
+
+app.get('/getAllBooks', async (req, res) => {
+	const books = await getAllBooks()
+	res.json(books)
+})
+
+app.get('/bookTouchShelf', async (req, res) => {
+	const { rfid, touchedShelf } = req.query
+	if (!rfid || !touchedShelf) {
+		return res.json("Missing required arguments")
+	}
+	const status = await bookTouchShelf(rfid, touchedShelf)
+	res.json(status)
+})
 
 app.get('/chatgpt', async (req, res) => {
 	const { text, key } = req.query

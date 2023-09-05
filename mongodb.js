@@ -71,3 +71,57 @@ export async function deleteFromShelf(book_id, shelf_id) {
 		await mongoClient.close()
 	}
 }
+
+export async function addSampleData() {
+	let mongoClient
+	try {
+		mongoClient = await connectToCluster()
+		// mongoClient.db().admin()
+		const db = mongoClient.db("專題")
+		const collection = db.collection('書')
+
+		const status = await collection.insertOne({
+			name: "解憂雜貨店2", shelfShouldStay: "A1", currentShelf: "", rfid: "b755ae6c"
+		})
+		return status.acknowledged
+	} finally {
+		await mongoClient.close()
+	}
+}
+
+export async function bookTouchShelf(rfid, touchedShelf) {
+	let mongoClient
+	try {
+		mongoClient = await connectToCluster()
+		const db = mongoClient.db("專題")
+		const collection = db.collection('書')
+		const books = await collection.find({ rfid }).toArray()
+
+		const currentShelf = books[0]?.currentShelf ? "" : touchedShelf
+
+		const status = await collection.updateOne({ rfid }, { $set: { currentShelf: currentShelf } })
+		return status.acknowledged
+	} finally {
+		await mongoClient.close()
+	}
+}
+
+export async function getAllBooks() {
+	let mongoClient
+	try {
+		mongoClient = await connectToCluster()
+		const db = mongoClient.db("專題")
+		const collection = db.collection('書')
+		const books = await collection.find().project({ _id: 0 }).toArray()
+
+		console.log(books)
+		return books
+
+	} finally {
+		await mongoClient.close()
+	}
+}
+
+// getAllBooks()
+// bookTouchShelf("48a754ad14c80", "A1")
+// addSampleData()
