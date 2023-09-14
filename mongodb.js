@@ -97,7 +97,13 @@ export async function bookTouchShelf(rfid, touchedShelf) {
 		const collection = db.collection('書')
 		const books = await collection.find({ rfid }).toArray()
 
-		const currentShelf = books[0]?.currentShelf ? "" : touchedShelf
+		let currentShelf = ""
+		if (books[0]?.currentShelf == '') {
+			currentShelf = touchedShelf
+		}
+		if (books[0]?.currentShelf != '' && books[0]?.currentShelf != touchedShelf) {
+			currentShelf = touchedShelf
+		}
 
 		const status = await collection.updateOne({ rfid }, { $set: { currentShelf: currentShelf } })
 		return status.acknowledged
