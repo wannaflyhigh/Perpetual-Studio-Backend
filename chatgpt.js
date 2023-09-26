@@ -2,7 +2,7 @@ import { ChatGPTAPI } from "chatgpt"
 import * as dotenv from "dotenv"
 dotenv.config()
 
-chatgpt('我覺得好累 考試壓力好大')
+// chatgpt('我覺得好累 考試壓力好大')
 
 export async function chatgpt(text) {
 	const initialPrompt = `我現在有這些書本，用json array 存起來
