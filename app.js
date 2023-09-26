@@ -1,15 +1,22 @@
 import express from "express"
 import * as dotenv from "dotenv"
 import axios from "axios"
-import { addToShelf, bookTouchShelf, deleteFromShelf, getAllBooks, queryShelf } from "./mongodb.js"
+import { addToShelf, bookTouchShelf, deleteFromShelf, getAllBooks, getBooksByNames, queryShelf } from "./mongodb.js"
 import cors from "cors"
 import { chatgpt } from "./chatgpt.js"
+import { openai } from "./openai.js"
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3000
 
 app.use(cors())
+
+app.get('/getBooksByNames', async (req, res) => {
+	const { stringfyNames } = req.query
+	const books = await getBooksByNames(stringfyNames)
+	res.json(books)
+})
 
 app.get('/getAllBooks', async (req, res) => {
 	const books = await getAllBooks()
@@ -29,7 +36,7 @@ app.get('/chatgpt', async (req, res) => {
 	const { text, key } = req.query
 	if (key != process.env.CHATGPT_KEY) return res.send('key required')
 	if (text == undefined) return res.send('missing parameter')
-	const data = await chatgpt(text)
+	const data = await openai(text)
 	res.json(data)
 })
 
