@@ -125,6 +125,11 @@ export async function bookTouchShelf(rfid, touchedShelf) {
 			currentShelf = touchedShelf
 		}
 
+		if (currentShelf == 'CAR') {
+			const status = await collection.updateOne({ isLastToCar: true }, { $set: { isLastToCar: false } })
+			const status2 = await collection.updateOne({ rfid }, { $set: { isLastToCar: true } })
+		}
+
 		const status = await collection.updateOne({ rfid }, { $set: { currentShelf: currentShelf } })
 		return status.acknowledged
 	} finally {
@@ -154,8 +159,10 @@ export async function getBooksByNames(stringfyNames) {
 		mongoClient = await connectToCluster()
 		const db = mongoClient.db("專題")
 		const collection = db.collection('書')
+		console.log("stringfyNames" + stringfyNames)
+		console.log(typeof (stringfyNames))
 		const parsedNames = JSON.parse(stringfyNames)
-		console.log(parsedNames)
+		console.log("parsedNames" + parsedNames)
 		const query = {
 			$or: parsedNames.map(name => { return { name: { $regex: name } } })
 		}
@@ -166,6 +173,44 @@ export async function getBooksByNames(stringfyNames) {
 
 	} catch {
 		return []
+	} finally {
+		await mongoClient.close()
+	}
+}
+
+export async function getBookByRFID(rfid) {
+	let mongoClient
+	try {
+		mongoClient = await connectToCluster()
+		const db = mongoClient.db("專題")
+		const collection = db.collection('書')
+		const query = { rfid }
+		// console.log('query:', query)
+		const book = await collection.find(query).project({ _id: 0 }).toArray()
+		console.log(book)
+		return book
+
+	} catch {
+		return {}
+	} finally {
+		await mongoClient.close()
+	}
+}
+
+export async function getLastOnCar() {
+	let mongoClient
+	try {
+		mongoClient = await connectToCluster()
+		const db = mongoClient.db("專題")
+		const collection = db.collection('書')
+		const query = { isLastToCar: true }
+		// console.log('query:', query)
+		const book = await collection.find(query).project({ _id: 0 }).toArray()
+		console.log(book)
+		return book
+
+	} catch {
+		return {}
 	} finally {
 		await mongoClient.close()
 	}

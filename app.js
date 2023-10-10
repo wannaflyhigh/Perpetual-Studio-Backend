@@ -1,16 +1,28 @@
 import express from "express"
 import * as dotenv from "dotenv"
 import axios from "axios"
-import { addToShelf, bookTouchShelf, deleteFromShelf, getAllBooks, getBooksByNames, queryShelf } from "./mongodb.js"
+import { addToShelf, bookTouchShelf, deleteFromShelf, getAllBooks, getBookByRFID, getBooksByNames, getLastOnCar, queryShelf } from "./mongodb.js"
 import cors from "cors"
 import { chatgpt } from "./chatgpt.js"
-import { openai } from "./openai.js"
+import { findBook } from "./openai.js"
+import correctWords from "./correctWords.js"
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3000
 
 app.use(cors())
+
+app.get('/getLastOnCar', async (req, res) => {
+	const books = await getLastOnCar()
+	res.json(books)
+})
+
+app.get('/getBookByRFID', async (req, res) => {
+	const { rfid } = req.query
+	const books = await getBookByRFID(rfid)
+	res.json(books)
+})
 
 app.get('/getBooksByNames', async (req, res) => {
 	const { stringfyNames } = req.query
@@ -29,6 +41,7 @@ app.get('/bookTouchShelf', async (req, res) => {
 		return res.json("Missing required arguments")
 	}
 	const status = await bookTouchShelf(rfid, touchedShelf)
+	// if touchedShelf == 'CAR' modified 
 	res.json(status)
 })
 
@@ -36,16 +49,18 @@ app.get('/chatgpt', async (req, res) => {
 	const { text, key } = req.query
 	if (key != process.env.CHATGPT_KEY) return res.send('key required')
 	if (text == undefined) return res.send('missing parameter')
-	const data = await openai(text)
+	const data = await findBook(text)
 	res.json(data)
 })
 
 app.get("/correctWords", async (req, res) => {
-	const resFromCorrectionSite = await axios.post(
-		`http://sunlight.iis.sinica.edu.tw/spcheck/?text=${req.query.text || "演蒜法"
-		}`
-	)
-	res.send(resFromCorrectionSite.data)
+	const { text } = req.query
+	if (!text) {
+		res.send("missing parameter")
+		return
+	}
+	const correctedWords = await correctWords(text)
+	res.json(correctedWords)
 })
 
 app.get('/get_in_shelf', async (req, res) => {

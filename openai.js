@@ -3,7 +3,7 @@ import * as dotenv from "dotenv"
 dotenv.config()
 // not finished yet
 
-export async function openai(text) {
+export async function findBook(text) {
 	console.log(`sending ${text}`)
 	const openai = new OpenAI({
 		apiKey: process.env.OPENAI_API_KEY, // defaults to process.env["OPENAI_API_KEY"]
